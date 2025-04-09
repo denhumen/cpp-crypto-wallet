@@ -1,7 +1,3 @@
-//
-// Created by denhumen on 4/9/25.
-//
-
 #ifndef NETWORK_H
 #define NETWORK_H
 

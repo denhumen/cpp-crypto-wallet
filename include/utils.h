@@ -1,7 +1,3 @@
-//
-// Created by denhumen on 4/9/25.
-//
-
 #ifndef UTILS_H
 #define UTILS_H
 

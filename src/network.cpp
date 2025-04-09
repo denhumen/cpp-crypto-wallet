@@ -1,7 +1,3 @@
-//
-// Created by denhumen on 4/9/25.
-//
-
 #include "network.h"
 #include <iostream>
 #include <curl/curl.h>

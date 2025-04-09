@@ -4,5 +4,5 @@ int main(){
     SolanaWallet solana;
     solana.generateKeyPair();
     solana.showPublicAddress();
-    solana.checkBalance();
+    solana.airdropAndCheckBalance();
 }

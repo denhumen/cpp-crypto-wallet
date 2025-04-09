@@ -5,5 +5,5 @@
 
 std::string UtilsSolana::base58Encode(const unsigned char *input, size_t length) {
     std::vector<unsigned char> data(input, input + length);
-    return Base64::encode(data);
+    return Base58::encode(data);
 }

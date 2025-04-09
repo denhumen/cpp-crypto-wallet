@@ -8,6 +8,7 @@ public:
     void generateKeyPair();
     void showPublicAddress() const;
     void checkBalance() const;
+    void airdropAndCheckBalance();
 private:
     std::string privateKey;
     std::string publicKey;

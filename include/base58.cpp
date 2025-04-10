@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include "base58.hpp"
 
 static const std::string BASE58_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
@@ -34,16 +35,24 @@ std::string Base58::encode(const std::vector<unsigned char>& data) {
     return result;
 }
 
-std::vector<unsigned char> Base58::decode(const std::string& encoded) {
+std::vector<uint8_t> Base58::decode(const std::string& encoded) {
     std::vector<int> map(256, -1);
-    for (int i = 0; i < 58; i++) map[BASE58_ALPHABET[i]] = i;
+    for (int i = 0; i < 58; i++) {
+        map[BASE58_ALPHABET[i]] = i;
+    }
 
-    std::vector<unsigned char> bytes((encoded.size() * 733 / 1000) + 1);
+    // Precalculate the maximum number of bytes needed.
+    std::vector<uint8_t> bytes((encoded.size() * 733 / 1000) + 1, 0);
     size_t byteLen = 1;
 
-    for (char c : encoded) {
-        if (map[c] == -1) break;
-        int carry = map[c];
+    for (size_t idx = 0; idx < encoded.size(); idx++) {
+        char c = encoded[idx];
+        int value = map[c];
+        if (value == -1) {
+            throw std::runtime_error("Invalid base58 encoding: InvalidCharacter { character: '" +
+                                     std::string(1, c) + "', index: " + std::to_string(idx) + " }");
+        }
+        int carry = value;
         for (size_t j = 0; j < byteLen; ++j) {
             carry += bytes[j] * 58;
             bytes[j] = carry & 0xFF;
@@ -55,13 +64,14 @@ std::vector<unsigned char> Base58::decode(const std::string& encoded) {
         }
     }
 
+    // Count leading '1' characters (which represent 0x00 bytes)
     size_t leadingZeros = 0;
     for (char c : encoded) {
         if (c == '1') leadingZeros++;
         else break;
     }
 
-    std::vector<unsigned char> result(leadingZeros, 0x00);
+    std::vector<uint8_t> result(leadingZeros, 0x00);
     for (ssize_t i = byteLen - 1; i >= 0; --i) {
         result.push_back(bytes[i]);
     }

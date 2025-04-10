@@ -29,8 +29,6 @@ add_executable(${PROJECT_NAME}
         include/solana/solana_key_manager.hpp
         src/solana/solana_network.cpp
         include/solana/solana_network.hpp
-        src/solana/solana_transaction.cpp
-        include/solana/solana_transaction.hpp
         src/solana/solana_wallet.cpp
         include/solana/solana_wallet.hpp
         src/solana/solana_utils.cpp
@@ -39,7 +37,30 @@ add_executable(${PROJECT_NAME}
         include/base58.hpp
 )
 
+add_executable(${PROJECT_NAME}2
+        main2.cpp
+        ${HEADERS}
+        ${SOURCES}
+        src/solana/solana_key_manager.cpp
+        include/solana/solana_key_manager.hpp
+        src/solana/solana_network.cpp
+        include/solana/solana_network.hpp
+        src/solana/solana_wallet.cpp
+        include/solana/solana_wallet.hpp
+        src/solana/solana_utils.cpp
+        include/solana/solana_utils.hpp
+        include/base58.cpp
+        include/base58.hpp
+        main2.cpp
+)
+
 target_link_libraries(${PROJECT_NAME} PRIVATE
+        OpenSSL::Crypto
+        nlohmann_json::nlohmann_json
+        CURL::libcurl
+        sodium
+)
+target_link_libraries(${PROJECT_NAME}2 PRIVATE
         OpenSSL::Crypto
         nlohmann_json::nlohmann_json
         CURL::libcurl
@@ -48,7 +69,12 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 
 
 target_include_directories(${PROJECT_NAME} PRIVATE include)
+target_include_directories(${PROJECT_NAME}2 PRIVATE include)
 
 INSTALL(PROGRAMS
         $<TARGET_FILE:${PROJECT_NAME}>
         DESTINATION bin)
+
+INSTALL(PROGRAMS
+        $<TARGET_FILE:${PROJECT_NAME}2>
+        DESTINATION bin2)

@@ -1,5 +1,8 @@
-#include <stdexcept>
-#include "base58.hpp"
+//
+// Created by denhumen on 4/9/25.
+//
+
+#include "encoding/Base58.hpp"
 
 static const std::string BASE58_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
@@ -10,7 +13,7 @@ std::string Base58::encode(const std::vector<unsigned char>& data) {
     std::vector<unsigned char> digits((input.size() * 138 / 100) + 1);
     size_t digitlen = 1;
 
-    for (unsigned char byte : input) {
+    for (const unsigned char byte : input) {
         int carry = byte;
         for (size_t j = 0; j < digitlen; ++j) {
             carry += digits[j] << 8;
@@ -24,7 +27,7 @@ std::string Base58::encode(const std::vector<unsigned char>& data) {
     }
 
     std::string result;
-    for (unsigned char byte : input) {
+    for (const unsigned char byte : input) {
         if (byte == 0) result += '1';
         else break;
     }
@@ -41,7 +44,6 @@ std::vector<uint8_t> Base58::decode(const std::string& encoded) {
         map[BASE58_ALPHABET[i]] = i;
     }
 
-    // Precalculate the maximum number of bytes needed.
     std::vector<uint8_t> bytes((encoded.size() * 733 / 1000) + 1, 0);
     size_t byteLen = 1;
 
@@ -64,7 +66,6 @@ std::vector<uint8_t> Base58::decode(const std::string& encoded) {
         }
     }
 
-    // Count leading '1' characters (which represent 0x00 bytes)
     size_t leadingZeros = 0;
     for (char c : encoded) {
         if (c == '1') leadingZeros++;

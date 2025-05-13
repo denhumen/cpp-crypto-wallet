@@ -17,10 +17,12 @@ include_directories(
         ${WALLET_CORE}/src
         ${WALLET_CORE}/build/local/include
         include
-        include/interfaces
+        include/helpers
         include/solana
-        include/encoding
-        include/cli
+#        include/interfaces
+#        include/solana
+#        include/encoding
+#        include/cli
 )
 
 link_directories(
@@ -42,17 +44,18 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(libsodium)
 
-file(GLOB INTERFACES ${CMAKE_SOURCE_DIR}/include/interfaces/*.hpp)
-file(GLOB SOLANA ${CMAKE_SOURCE_DIR}/include/solana/*.hpp ${CMAKE_SOURCE_DIR}/src/solana/*.cpp)
-file(GLOB ENC ${CMAKE_SOURCE_DIR}/include/encoding/*.hpp ${CMAKE_SOURCE_DIR}/src/encoding/*.cpp)
-file(GLOB CLI ${CMAKE_SOURCE_DIR}/include/cli/*.hpp ${CMAKE_SOURCE_DIR}/src/cli/*.cpp)
+#file(GLOB INTERFACES ${CMAKE_SOURCE_DIR}/include/interfaces/*.hpp)
+#file(GLOB SOLANA ${CMAKE_SOURCE_DIR}/include/solana/*.hpp ${CMAKE_SOURCE_DIR}/src/solana/*.cpp)
+#file(GLOB ENC ${CMAKE_SOURCE_DIR}/include/encoding/*.hpp ${CMAKE_SOURCE_DIR}/src/encoding/*.cpp)
+#file(GLOB CLI ${CMAKE_SOURCE_DIR}/include/cli/*.hpp ${CMAKE_SOURCE_DIR}/src/cli/*.cpp)
+file(GLOB HELPERS src/helpers/*.cpp)
+file(GLOB SOLANA src/solana/*.cpp)
+
 
 add_executable(${PROJECT_NAME}
         main.cpp
-        ${INTERFACES}
+        ${HELPERS}
         ${SOLANA}
-        ${ENC}
-        ${CLI}
 )
 
 # Link Trust Wallet Core and its dependencies

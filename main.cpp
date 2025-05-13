@@ -1,7 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
-//
-// Copyright © 2017 Trust Wallet.
-
 #include <TrustWalletCore/TWHDWallet.h>
 #include <TrustWalletCore/TWCoinType.h>
 #include <TrustWalletCore/TWPrivateKey.h>
@@ -13,8 +9,8 @@
 #include <fstream>
 
 #include "EthereumHelper.hpp"
-#include "JsonRpcHelper.hpp"
 #include "SolanaHelper.hpp"
+#include "bitoc/BitCoinHelper.hpp"
 
 using namespace std;
 
@@ -139,6 +135,16 @@ void checkSolanaBalance(TWHDWallet* wallet) {
     cout << "Balance Response: " << response << "\n";
 }
 
+void checkBItCoinBalance(TWHDWallet* wallet) {
+    string address = TWStringUTF8Bytes(TWHDWalletGetAddressForCoin(wallet, TWCoinTypeBitcoin));
+
+    cout << "\n🔍 Checking BitCoin balance for address: " << address << "\n";
+
+    // Use SolanaHelper to get the balance
+    string response = BitCoinHelper::getBalance(address);
+    cout << "Balance Response: " << response << "\n";
+}
+
 void checkEtherBalance(TWHDWallet* wallet) {
     string address = TWStringUTF8Bytes(TWHDWalletGetAddressForCoin(wallet, TWCoinTypeEthereum));
 
@@ -162,7 +168,8 @@ int main() {
         cout << "4️⃣  Airdrop SOL (Testnet)\n";
         cout << "5️⃣  Check Balance (Solana)\n";
         cout << "6️⃣  Check Balance (Ethereum)\n";
-        cout << "7️⃣  Exit\n";
+        cout << "7⃣  Check Balance (Ethereum)\n";
+        cout << "8⃣  Exit\n";
         cout << "Choose an option (1, 2, 3, 4, 5, 6, 7): ";
 
         int choice;
@@ -207,8 +214,14 @@ int main() {
             } else {
                 checkEtherBalance(loggedInWallet);
             }
+        } else if (choice == 7) {
+            if (!loggedInWallet) {
+                cout << "❌ Please log in first.\n";
+            } else {
+                checkBItCoinBalance(loggedInWallet);
+            }
         }
-        else if (choice == 7) {
+        else if (choice == 8) {
             cout << "🚪 Exiting. Goodbye!\n";
             break;
         } else {

@@ -1,7 +1,3 @@
-//
-// Created by denhumen on 5/13/25.
-//
-
 #include "EthereumHelper.hpp"
 #include "JsonRpcHelper.hpp"
 #include <nlohmann/json.hpp>

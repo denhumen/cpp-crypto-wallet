@@ -10,7 +10,7 @@ if (NOT ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang"))
     message(FATAL_ERROR "You should use clang compiler")
 endif()
 
-set(WALLET_CORE /home/denhumen/Downloads/wallet-core)
+set(WALLET_CORE /home/nazar/3Year/wallet-core)
 
 include_directories(
         ${WALLET_CORE}/include
@@ -56,6 +56,8 @@ add_executable(${PROJECT_NAME}
         main.cpp
         ${HELPERS}
         ${SOLANA}
+        include/bitoc/BitCoinHelper.hpp
+        src/bitoc/BitCoinHelper.cpp
 )
 
 # Link Trust Wallet Core and its dependencies
@@ -69,6 +71,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         CURL::libcurl
         sodium
         pthread
+        stdc++
+        m
 )
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)

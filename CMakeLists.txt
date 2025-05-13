@@ -3,26 +3,69 @@ set(PROJECT_NAME cpp_crypto_wallet)
 project(${PROJECT_NAME})
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-include_directories(include)
+if (NOT ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang"))
+    message(FATAL_ERROR "You should use clang compiler")
+endif()
+
+set(WALLET_CORE /home/denhumen/Downloads/wallet-core)
+
+include_directories(
+        ${WALLET_CORE}/include
+        ${WALLET_CORE}/src
+        ${WALLET_CORE}/build/local/include
+        include
+        include/interfaces
+        include/solana
+        include/encoding
+        include/cli
+)
+
+link_directories(
+        ${WALLET_CORE}/build
+        ${WALLET_CORE}/build/trezor-crypto
+        ${WALLET_CORE}/build/local/lib
+        ${WALLET_CORE}/rust/target/release
+)
 
 find_package(OpenSSL REQUIRED)
 find_package(nlohmann_json 3.2.0 REQUIRED)
+find_package(CURL REQUIRED)
 
-file(GLOB HEADERS ${CMAKE_SOURCE_DIR}/include/*.hpp ${CMAKE_SOURCE_DIR}/include/*.h)
-file(GLOB SOURCES ${CMAKE_SOURCE_DIR}/src/*.cpp)
+include(FetchContent)
+FetchContent_Declare(
+        libsodium
+        GIT_REPOSITORY https://github.com/jedisct1/libsodium.git
+        GIT_TAG stable
+)
+FetchContent_MakeAvailable(libsodium)
+
+file(GLOB INTERFACES ${CMAKE_SOURCE_DIR}/include/interfaces/*.hpp)
+file(GLOB SOLANA ${CMAKE_SOURCE_DIR}/include/solana/*.hpp ${CMAKE_SOURCE_DIR}/src/solana/*.cpp)
+file(GLOB ENC ${CMAKE_SOURCE_DIR}/include/encoding/*.hpp ${CMAKE_SOURCE_DIR}/src/encoding/*.cpp)
+file(GLOB CLI ${CMAKE_SOURCE_DIR}/include/cli/*.hpp ${CMAKE_SOURCE_DIR}/src/cli/*.cpp)
 
 add_executable(${PROJECT_NAME}
         main.cpp
-        ${HEADERS}
-        ${SOURCES}
+        ${INTERFACES}
+        ${SOLANA}
+        ${ENC}
+        ${CLI}
 )
 
-target_link_libraries(${PROJECT_NAME} OpenSSL::Crypto)
-target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
+# Link Trust Wallet Core and its dependencies
+target_link_libraries(${PROJECT_NAME} PRIVATE
+        ${WALLET_CORE}/build/libTrustWalletCore.a
+        ${WALLET_CORE}/build/trezor-crypto/libTrezorCrypto.a
+        ${WALLET_CORE}/build/local/lib/libprotobuf.a
+        ${WALLET_CORE}/rust/target/release/libwallet_core_rs.a
+        OpenSSL::Crypto
+        nlohmann_json::nlohmann_json
+        CURL::libcurl
+        sodium
+        pthread
+)
 
-target_include_directories(${PROJECT_NAME} PRIVATE include)
-
-INSTALL(PROGRAMS
-        $<TARGET_FILE:${PROJECT_NAME}>
-        DESTINATION bin)
+install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)

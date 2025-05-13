@@ -11,6 +11,7 @@
 class JsonRpcHelper {
 public:
     static std::string sendJsonRpcRequest(const std::string& url, const nlohmann::json& payload);
+    static std::string sendApiRequest(const std::string& url);
 };
 
 #endif //JSONRPCHELPER_HPP

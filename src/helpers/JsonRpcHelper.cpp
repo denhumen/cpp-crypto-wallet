@@ -41,3 +41,26 @@ std::string JsonRpcHelper::sendJsonRpcRequest(const std::string& url, const json
 
     return response;
 }
+
+std::string JsonRpcHelper::sendApiRequest(const std::string& url) {
+    CURL* curl = curl_easy_init();
+    std::string response;
+
+    if (curl) {
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+
+        CURLcode res = curl_easy_perform(curl);
+        if (res != CURLE_OK) {
+            std::cerr << "CURL API Error: " << curl_easy_strerror(res) << std::endl;
+        }
+
+        curl_easy_cleanup(curl);
+    } else {
+        response = "Error: CURL initialization failed.";
+    }
+
+    return response;
+}

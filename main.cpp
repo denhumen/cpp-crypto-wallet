@@ -11,6 +11,8 @@
 #include <string>
 #include <map>
 #include <fstream>
+
+#include "EthereumHelper.hpp"
 #include "JsonRpcHelper.hpp"
 #include "SolanaHelper.hpp"
 
@@ -137,6 +139,15 @@ void checkSolanaBalance(TWHDWallet* wallet) {
     cout << "Balance Response: " << response << "\n";
 }
 
+void checkEtherBalance(TWHDWallet* wallet) {
+    string address = TWStringUTF8Bytes(TWHDWalletGetAddressForCoin(wallet, TWCoinTypeEthereum));
+
+    cout << "\n🔍 Checking Ethereum balance for address: " << address << "\n";
+
+    string response = EthereumHelper::getBalance(address);
+    cout << "Balance Response: " << response << "\n";
+}
+
 // Main application logic
 int main() {
     // Load existing wallets
@@ -150,8 +161,9 @@ int main() {
         cout << "3️⃣  Login with Mnemonic\n";
         cout << "4️⃣  Airdrop SOL (Testnet)\n";
         cout << "5️⃣  Check Balance (Solana)\n";
-        cout << "6️⃣  Exit\n";
-        cout << "Choose an option (1, 2, 3, 4, 5, 6): ";
+        cout << "6️⃣  Check Balance (Ethereum)\n";
+        cout << "7️⃣  Exit\n";
+        cout << "Choose an option (1, 2, 3, 4, 5, 6, 7): ";
 
         int choice;
         cin >> choice;
@@ -190,6 +202,13 @@ int main() {
                 checkSolanaBalance(loggedInWallet);
             }
         } else if (choice == 6) {
+            if (!loggedInWallet) {
+                cout << "❌ Please log in first.\n";
+            } else {
+                checkEtherBalance(loggedInWallet);
+            }
+        }
+        else if (choice == 7) {
             cout << "🚪 Exiting. Goodbye!\n";
             break;
         } else {

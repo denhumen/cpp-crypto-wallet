@@ -1,7 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
-//
-// Copyright © 2017 Trust Wallet.
-
 #include <TrustWalletCore/TWHDWallet.h>
 #include <TrustWalletCore/TWCoinType.h>
 #include <TrustWalletCore/TWPrivateKey.h>
@@ -13,8 +9,8 @@
 #include <fstream>
 
 #include "EthereumHelper.hpp"
-#include "JsonRpcHelper.hpp"
 #include "SolanaHelper.hpp"
+#include "bitoc/BitCoinHelper.hpp"
 
 using namespace std;
 
@@ -138,6 +134,25 @@ void checkSolanaBalance(TWHDWallet* wallet) {
     string response = SolanaHelper::getBalance(address);
     cout << "Balance Response: " << response << "\n";
 }
+void  makeSolanaTransaction(TWHDWallet* wallet, const std::string& toAddress, int64_t lamports) {
+    string address = TWStringUTF8Bytes(TWHDWalletGetAddressForCoin(wallet, TWCoinTypeSolana));
+
+    cout << "\n🔍 Checking Solana balance for address: " << address << "\n";
+
+    // Use SolanaHelper to get the balance
+    string response = SolanaHelper::transfer("mom armed zero advice region chair matter genuine draw goat soon enforce", toAddress, lamports);
+    cout << "Balance Response: " << response << "\n";
+}
+
+void checkBItCoinBalance(TWHDWallet* wallet) {
+    string address = TWStringUTF8Bytes(TWHDWalletGetAddressForCoin(wallet, TWCoinTypeBitcoin));
+
+    cout << "\n🔍 Checking BitCoin balance for address: " << address << "\n";
+
+    // Use SolanaHelper to get the balance
+    string response = BitCoinHelper::getBalance(address);
+    cout << "Balance Response: " << response << "\n";
+}
 
 void checkEtherBalance(TWHDWallet* wallet) {
     string address = TWStringUTF8Bytes(TWHDWalletGetAddressForCoin(wallet, TWCoinTypeEthereum));
@@ -162,7 +177,9 @@ int main() {
         cout << "4️⃣  Airdrop SOL (Testnet)\n";
         cout << "5️⃣  Check Balance (Solana)\n";
         cout << "6️⃣  Check Balance (Ethereum)\n";
-        cout << "7️⃣  Exit\n";
+        cout << "7⃣  Check Balance (BitCoin)\n";
+        cout << "8⃣  Make Transaction (Solana)\n";
+        cout << "9⃣  Exit\n";
         cout << "Choose an option (1, 2, 3, 4, 5, 6, 7): ";
 
         int choice;
@@ -174,9 +191,9 @@ int main() {
             loggedInWallet = loginWallet();
         } else if (choice == 3) {
             cout << "\n🔑 Enter your mnemonic phrase: ";
-            string mnemonic;
-            cin.ignore();
-            getline(cin, mnemonic);
+            string mnemonic = "mom armed zero advice region chair matter genuine draw goat soon enforce";
+//            cin.ignore();
+//            getline(cin, mnemonic);
             auto secretMnemonic = TWStringCreateWithUTF8Bytes(mnemonic.c_str());
             loggedInWallet = TWHDWalletCreateWithMnemonic(secretMnemonic, TWStringCreateWithUTF8Bytes(""));
             TWStringDelete(secretMnemonic);
@@ -207,8 +224,27 @@ int main() {
             } else {
                 checkEtherBalance(loggedInWallet);
             }
+        } else if (choice == 7) {
+            if (!loggedInWallet) {
+                cout << "❌ Please log in first.\n";
+            } else {
+                checkBItCoinBalance(loggedInWallet);
+            }
+        } else if (choice == 8) {
+            if (!loggedInWallet) {
+                cout << "❌ Please log in first.\n";
+            } else {
+                cin.ignore();
+                std::string address;
+                float solana_count;
+                cout << "\n Enter receiver address: ";
+                getline(cin, address);
+                cout << "\n Enter solana amount: ";
+                cin >> solana_count;
+                makeSolanaTransaction(loggedInWallet, address, solana_count * 1000000000);
+            }
         }
-        else if (choice == 7) {
+        else if (choice == 9) {
             cout << "🚪 Exiting. Goodbye!\n";
             break;
         } else {

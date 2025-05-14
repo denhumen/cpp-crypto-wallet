@@ -75,6 +75,10 @@ set(SRC_FILES
         src/ui/mainwindow.cpp   # Make sure this is included
         ${UIS_HEADERS}
         ${MOC_OUTPUT}  # Ensure moc files are linked
+        include/bitoc/BitCoinHelper.hpp
+        src/bitoc/BitCoinHelper.cpp
+        include/encoding/Base58.hpp
+        src/encoding/Base58.hpp.cpp
 )
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})

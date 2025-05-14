@@ -180,7 +180,7 @@ int main() {
         cout << "7⃣  Check Balance (BitCoin)\n";
         cout << "8⃣  Make Transaction (Solana)\n";
         cout << "9⃣  Exit\n";
-        cout << "Choose an option (1, 2, 3, 4, 5, 6, 7): ";
+        cout << "Choose an option (1, 2, 3, 4, 5, 6, 7, 8): ";
 
         int choice;
         cin >> choice;
@@ -191,16 +191,16 @@ int main() {
             loggedInWallet = loginWallet();
         } else if (choice == 3) {
             cout << "\n🔑 Enter your mnemonic phrase: ";
-            string mnemonic = "mom armed zero advice region chair matter genuine draw goat soon enforce";
-//            cin.ignore();
-//            getline(cin, mnemonic);
+            string mnemonic;
+            cin.ignore();
+            getline(cin, mnemonic);
             auto secretMnemonic = TWStringCreateWithUTF8Bytes(mnemonic.c_str());
             loggedInWallet = TWHDWalletCreateWithMnemonic(secretMnemonic, TWStringCreateWithUTF8Bytes(""));
             TWStringDelete(secretMnemonic);
 
             cout << "\n✅ Login Successful!\n";
 
-            // Display wallet addresses
+
             cout << "\n🌐 Your Wallet Addresses:\n";
             cout << "🔸 Bitcoin: " << TWStringUTF8Bytes(TWHDWalletGetAddressForCoin(loggedInWallet, TWCoinTypeBitcoin)) << endl;
             cout << "🔸 Ethereum: " << TWStringUTF8Bytes(TWHDWalletGetAddressForCoin(loggedInWallet, TWCoinTypeEthereum)) << endl;

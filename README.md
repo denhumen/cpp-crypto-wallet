@@ -1,6 +1,10 @@
 # cpp-crypto-wallet [Qt version]
 A lightweight and secure Crypto Testnet wallet built in modern C++ with Qt6 framework for GUI
 
+Branches:
+- master: Qt version of cpp-crypto-wallet
+- TrustWallet_CLI: CLI version of cpp-crypto-wallet
+
 ### 1) System dependencies (Debian/Ubuntu)
 
 ```bash

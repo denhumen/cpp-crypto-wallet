@@ -58,6 +58,8 @@ add_executable(${PROJECT_NAME}
         ${SOLANA}
         include/bitoc/BitCoinHelper.hpp
         src/bitoc/BitCoinHelper.cpp
+        include/encoding/Base58.hpp
+        src/encoding/Base58.hpp.cpp
 )
 
 # Link Trust Wallet Core and its dependencies

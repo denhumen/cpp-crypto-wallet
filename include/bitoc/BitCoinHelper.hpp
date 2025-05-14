@@ -2,6 +2,7 @@
 #define CPP_CRYPTO_WALLET_BITCOINHELPER_HPP
 
 #include <string>
+#include <TrustWalletCore/TWCoinType.h>
 
 
 class BitCoinHelper{

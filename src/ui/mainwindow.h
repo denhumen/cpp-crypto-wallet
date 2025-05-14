@@ -21,19 +21,12 @@ public:
     ~MainWindow();
 
 private slots:
-    // Home page
     void openCreatePage();
     void openExistingPage();
-
-    // Create page
     void copyMnemonic();
-    void openWithGenerated();    // “Open Wallet” on Create page
-    void openHomePage();         // Back button
-
-    // Existing page
+    void openWithGenerated();
+    void openHomePage();
     void openExisting();
-
-    // Balance page
     void onCoinSelected(QListWidgetItem* item);
     void logout();
     void openReceivePage();

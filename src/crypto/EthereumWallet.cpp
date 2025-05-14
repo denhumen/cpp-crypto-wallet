@@ -29,14 +29,10 @@
 
 using json = nlohmann::json;
 
-// ——— Configuration ———
 static const std::string ETHERSCAN_URL = "https://api-sepolia.etherscan.io/api";
 static const std::string API_TOKEN     = "9CFWDYF2WJNEDGAHG31UU5PK99RGJ1UINV";
 static constexpr uint64_t CHAIN_ID     = 11155111;  // Sepolia
 
-// ——— Helpers ———
-
-// Hex-encode bytes to "0x..." string
 static std::string toHex(const std::vector<uint8_t>& data) {
     static constexpr char hex[] = "0123456789abcdef";
     std::string out; out.reserve(data.size()*2 + 2);
@@ -48,7 +44,6 @@ static std::string toHex(const std::vector<uint8_t>& data) {
     return out;
 }
 
-// Keccak-256 via OpenSSL SHA3-256
 static std::array<uint8_t,32> keccak256(const uint8_t* data, size_t len) {
     std::array<uint8_t,32> hash;
     EVP_MD_CTX* ctx = EVP_MD_CTX_new();
@@ -60,7 +55,6 @@ static std::array<uint8_t,32> keccak256(const uint8_t* data, size_t len) {
     return hash;
 }
 
-// RLP-encode an unsigned integer
 static void appendRlpEncodedUint(std::vector<uint8_t>& out, uint64_t value) {
     if (value == 0) {
         out.push_back(0x80);
@@ -80,7 +74,6 @@ static void appendRlpEncodedUint(std::vector<uint8_t>& out, uint64_t value) {
     }
 }
 
-// RLP-encode an arbitrary byte array
 static void appendRlpEncodedBytes(std::vector<uint8_t>& out, const std::vector<uint8_t>& buf) {
     if (buf.size() == 1 && buf[0] < 0x80) {
         out.push_back(buf[0]);
@@ -90,14 +83,12 @@ static void appendRlpEncodedBytes(std::vector<uint8_t>& out, const std::vector<u
     }
 }
 
-// Strip all leading 0x00 but leave at least one byte
 static std::vector<uint8_t> trimLeadingZeros(std::vector<uint8_t> v) {
     size_t i = 0;
     while (i + 1 < v.size() && v[i] == 0) i++;
     return { v.begin() + i, v.end() };
 }
 
-// Convert hex string (with or without "0x") to bytes
 static std::vector<uint8_t> hexStringToBytes(const std::string& hex) {
     size_t start = 0;
     if (hex.size() >= 2 && hex[0]=='0' && std::tolower(hex[1])=='x') start = 2;
@@ -118,10 +109,8 @@ static std::vector<uint8_t> hexStringToBytes(const std::string& hex) {
     return bytes;
 }
 
-// ——— EthereumWallet methods ———
 
 double EthereumWallet::getBalanceAsDouble(const std::string& address) const {
-    // Build the Etherscan "account balance" URL
     auto url = ETHERSCAN_URL
       + "?module=account"
       + "&action=balance"
@@ -138,7 +127,6 @@ double EthereumWallet::getBalanceAsDouble(const std::string& address) const {
             j.value("message","unknown")
         );
     }
-    // result is a string of wei
     uint64_t wei = std::stoull(j["result"].get<std::string>());
     return double(wei) / 1e18;
 }
@@ -157,7 +145,6 @@ std::string EthereumWallet::signTransaction(
 ) const {
 
     std::cout << TWStringUTF8Bytes(TWHDWalletGetAddressForCoin(wallet, TWCoinTypeEthereum)) << std::endl;
-    // --- 1) derive private key bytes ---
     auto pkObj  = TWHDWalletGetKeyForCoin(wallet, TWCoinTypeEthereum);
     TWData* pd  = TWPrivateKeyData(pkObj);
     auto privKey = static_cast<const uint8_t*>(TWDataBytes(pd));
@@ -165,13 +152,11 @@ std::string EthereumWallet::signTransaction(
     TWDataDelete(pd);
     TWPrivateKeyDelete(pkObj);
 
-    // --- 1.5) derive fromAddress ---
     TWString* fromTw = TWHDWalletGetAddressForCoin(wallet, TWCoinTypeEthereum);
     std::string fromAddress = TWStringUTF8Bytes(fromTw);
     TWStringDelete(fromTw);
     std::cout << "[DEBUG] fromAddress: " << fromAddress << "\n";
 
-    // --- 2a) nonce via etherscan proxy ---
     {
         auto url = ETHERSCAN_URL
           + "?module=proxy"
@@ -185,10 +170,8 @@ std::string EthereumWallet::signTransaction(
         if (j.contains("error")) {
             throw std::runtime_error("Nonce error: " + j["error"]["message"].get<std::string>());
         }
-        // hex result
         uint64_t nonce = std::stoull(j.value("result","0x0").substr(2), nullptr, 16);
 
-        // --- 2b) gasPrice via etherscan proxy ---
         auto url2 = ETHERSCAN_URL
           + "?module=proxy"
           + "&action=eth_gasPrice"
@@ -204,7 +187,6 @@ std::string EthereumWallet::signTransaction(
         uint64_t gasLimit = 21000;
         uint64_t valueWei = static_cast<uint64_t>(amountEth * 1e18);
 
-        // --- 3) RLP‐encode unsigned tx ---
         auto toBytes = hexStringToBytes(toAddress);
         std::vector<uint8_t> rlp;
         appendRlpEncodedUint(rlp, nonce);
@@ -212,12 +194,11 @@ std::string EthereumWallet::signTransaction(
         appendRlpEncodedUint(rlp, gasLimit);
         appendRlpEncodedBytes(rlp, toBytes);
         appendRlpEncodedUint(rlp, valueWei);
-        rlp.push_back(0x80);                      // empty data
-        appendRlpEncodedUint(rlp, CHAIN_ID);     // EIP-155
+        rlp.push_back(0x80);
+        appendRlpEncodedUint(rlp, CHAIN_ID);
         appendRlpEncodedUint(rlp, 0);
         appendRlpEncodedUint(rlp, 0);
 
-        // wrap as list
         std::vector<uint8_t> enc;
         if (rlp.size()<56) {
             enc.push_back(static_cast<uint8_t>(0xc0 + rlp.size()));
@@ -228,10 +209,8 @@ std::string EthereumWallet::signTransaction(
         }
         enc.insert(enc.end(), rlp.begin(), rlp.end());
 
-        // --- 4) keccak256 ---
         auto hash = keccak256(enc.data(), enc.size());
 
-        // 5) sign with secp256k1, producing 64-byte compact + recovery id
         secp256k1_context* ctx = secp256k1_context_create(SECP256K1_CONTEXT_SIGN);
         secp256k1_ecdsa_recoverable_signature sig;
         secp256k1_ecdsa_sign_recoverable(
@@ -246,12 +225,10 @@ std::string EthereumWallet::signTransaction(
         );
         secp256k1_context_destroy(ctx);
 
-        // rename these so they don't collide with your JSON‐result "r"
         std::vector<uint8_t> r_sig(sig64,         sig64 + 32);
         std::vector<uint8_t> s_sig(sig64 + 32,    sig64 + 64);
         uint64_t v = recid + 35 + 2 * CHAIN_ID;  // EIP-155
 
-        // 6) RLP‐encode the signed transaction
         std::vector<uint8_t> rlp2;
         appendRlpEncodedUint(rlp2, nonce);
         appendRlpEncodedUint(rlp2, gasPrice);
@@ -260,7 +237,6 @@ std::string EthereumWallet::signTransaction(
         appendRlpEncodedUint(rlp2, valueWei);
         rlp2.push_back(0x80);               // empty data
         appendRlpEncodedUint(rlp2, v);
-        // use the new names here:
         appendRlpEncodedBytes(rlp2, trimLeadingZeros(r_sig));
         appendRlpEncodedBytes(rlp2, trimLeadingZeros(s_sig));
 
@@ -274,7 +250,6 @@ std::string EthereumWallet::signTransaction(
         }
         finalTx.insert(finalTx.end(), rlp2.begin(), rlp2.end());
 
-        // --- 7) broadcast via Etherscan proxy ---
         auto rawHex = toHex(finalTx);
         std::string proxyUrl =
             ETHERSCAN_URL

@@ -61,7 +61,6 @@ struct TransactionMessage {
     std::vector<CompiledInstruction> instructions;
 };
 
-// Inline old serializeMessage:
 static std::vector<uint8_t> serializeMessage(const TransactionMessage &msg) {
     std::vector<uint8_t> buf;
     buf.push_back(msg.num_required_signatures);
@@ -86,7 +85,6 @@ std::string SolanaHelper::transfer(
         const std::string& toAddress,
         int64_t lamports
 ) {
-    // 1) Derive 32-byte seed from mnemonic
     TWHDWallet* wallet = TWHDWalletCreateWithMnemonic(TWStringCreateWithUTF8Bytes(mnemonic.c_str()), TWStringCreateWithUTF8Bytes(""));
 
     if (!wallet) throw std::runtime_error("Failed to create HD wallet");
@@ -95,14 +93,11 @@ std::string SolanaHelper::transfer(
     TWPrivateKeyDelete(privKey);
     TWHDWalletDelete(wallet);
 
-    // 2) Expand to full Ed25519 keypair via libsodium
     unsigned char sk[crypto_sign_SECRETKEYBYTES], pk[crypto_sign_PUBLICKEYBYTES];
     if (crypto_sign_seed_keypair(pk, sk, TWDataBytes(seed)) != 0) {
         throw std::runtime_error("crypto_sign_seed_keypair failed");
     }
 
-    // 3) Get Base58 “from” address
-    //    wrap pk in a TWPublicKey so TWSolanaAddressCreateWithPublicKey works:
     TWData* pkData = TWDataCreateWithBytes(pk, sizeof(pk));
     TWPublicKey* twPub = TWPublicKeyCreateWithData(pkData, TWPublicKeyTypeED25519);
     TWDataDelete(pkData);
@@ -111,14 +106,12 @@ std::string SolanaHelper::transfer(
     std::string fromAddress = TWStringUTF8Bytes(fromTw);
     TWStringDelete(fromTw);
 
-    // 4) Fetch recent blockhash
     auto bhResp = json::parse(JsonRpcHelper::sendJsonRpcRequest(SOLANA_RPC_URL, {
             {"jsonrpc","2.0"}, {"id",1}, {"method","getLatestBlockhash"},
             {"params", {{{"commitment","finalized"}}}}
     }));
     std::string recentBlockhash = bhResp["result"]["value"]["blockhash"];
 
-    // 5) Build TransactionMessage
     TransactionMessage msg;
     msg.num_required_signatures = 1;
     msg.num_readonly_signed     = 0;
@@ -126,7 +119,7 @@ std::string SolanaHelper::transfer(
     msg.account_keys = {
             Base58::decode(fromAddress),
             Base58::decode(toAddress),
-            std::vector<uint8_t>(32, 0)  // system program
+            std::vector<uint8_t>(32, 0)
     };
     msg.recent_blockhash = Base58::decode(recentBlockhash);
 
@@ -134,15 +127,12 @@ std::string SolanaHelper::transfer(
     inst.program_id_index = 2;
     inst.account_indices  = {0,1};
     inst.data.resize(4+8);
-    // 4-byte LE instruction = 2
     inst.data[0] = 2; inst.data[1]=inst.data[2]=inst.data[3]=0;
-    // 8-byte LE lamports
     for (int i = 0; i < 8; ++i) {
         inst.data[4+i] = (lamports >> (8*i)) & 0xFF;
     }
     msg.instructions = { inst };
 
-    // 6) Serialize & sign
     auto serialized = serializeMessage(msg);
     std::vector<uint8_t> signature(crypto_sign_BYTES);
     if (crypto_sign_detached(signature.data(), nullptr,
@@ -151,15 +141,13 @@ std::string SolanaHelper::transfer(
         throw std::runtime_error("Failed to sign");
     }
 
-    // 7) Build fullTx = [1 || signature || serialized]
     std::vector<uint8_t> fullTx;
     fullTx.push_back(1);
     fullTx.insert(fullTx.end(), signature.begin(), signature.end());
     fullTx.insert(fullTx.end(), serialized.begin(), serialized.end());
 
-    // 8) Base64 encode
     size_t b64len = sodium_base64_ENCODED_LEN(fullTx.size(), sodium_base64_VARIANT_ORIGINAL);
-    char* tmp = new char[b64len];  // includes room for NUL
+    char* tmp = new char[b64len];
     sodium_bin2base64(
             tmp,
             b64len,
@@ -167,11 +155,9 @@ std::string SolanaHelper::transfer(
             fullTx.size(),
             sodium_base64_VARIANT_ORIGINAL
     );
-    // Now tmp is a \0-terminated C-string:
     std::string txB64(tmp);
     delete[] tmp;
 
-    // 9) Send via JSON-RPC
     auto sendResp = json::parse(JsonRpcHelper::sendJsonRpcRequest(SOLANA_RPC_URL, {
             {"jsonrpc","2.0"}, {"id",1}, {"method","sendTransaction"},
             {"params", json::array({ txB64, {{"encoding","base64"}} }) }

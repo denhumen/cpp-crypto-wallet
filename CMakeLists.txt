@@ -12,13 +12,6 @@ endif()
 
 set(WALLET_CORE /home/denhumen/Downloads/wallet-core)
 
-
-# Use find_package with the specified Protobuf root
-
-# Ensure the Protobuf include directories are added
-
-# Link Protobuf to your project
-
 include_directories(
         ${WALLET_CORE}/include
         ${WALLET_CORE}/src
@@ -49,18 +42,16 @@ if (NOT SECP256K1_LIB)
 endif()
 
 
-set(Qt6_DIR ~/Qt/6.9.0/gcc_64/lib/cmake/Qt6)
-find_package(Qt6 COMPONENTS Core Widgets Gui REQUIRED)
+#set(Qt6_DIR ~/Qt/6.9.0/gcc_64/lib/cmake/Qt6)
 
-# Add UI Files (mainwindow.ui)
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets Gui)
+
 set(UIS_FILES src/ui/mainwindow.ui)
 qt6_wrap_ui(UIS_HEADERS ${UIS_FILES})
 
-# Ensure MOC (Meta-Object Compiler) is set up
 set(MOC_FILES   src/ui/mainwindow.h)
-qt6_wrap_cpp(MOC_OUTPUT ${MOC_FILES})  # Generate moc files
+qt6_wrap_cpp(MOC_OUTPUT ${MOC_FILES})
 
-# Include your source files (helpers, solana, and mainwindow.cpp)
 file(GLOB HELPERS src/helpers/*.cpp)
 file(GLOB SOLANA src/solana/*.cpp)
 file(GLOB WALLET src/wallet/*.cpp)
@@ -72,23 +63,20 @@ set(SRC_FILES
         ${SOLANA}
         ${WALLET}
         ${CRYPTO}
-        src/ui/mainwindow.cpp   # Make sure this is included
+        src/ui/mainwindow.cpp
         ${UIS_HEADERS}
-        ${MOC_OUTPUT}  # Ensure moc files are linked
+        ${MOC_OUTPUT}
         include/bitoc/BitCoinHelper.hpp
         src/bitoc/BitCoinHelper.cpp
         include/encoding/Base58.hpp
-        src/encoding/Base58.hpp.cpp
+        src/encoding/Base58.cpp
 )
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
 
-# Ensure the generated header file is included
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(${PROJECT_NAME} PRIVATE ${Protobuf_LIBRARIES})
 
-
-# Link Trust Wallet Core and Qt
 target_link_libraries(${PROJECT_NAME} PRIVATE
         ${WALLET_CORE}/build/libTrustWalletCore.a
         ${WALLET_CORE}/build/trezor-crypto/libTrezorCrypto.a

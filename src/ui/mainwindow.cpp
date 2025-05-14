@@ -134,7 +134,7 @@ void MainWindow::updateBalanceInfo() {
     ui->balanceInfoLabel->setText(QString::fromStdString(info));
 
     double bal = WalletManager::instance().getCurrentBalanceDouble();
-    qDebug() << "DEBUG: on-chain Sepolia balance =" << bal << "ETH";
+    // qDebug() << "DEBUG: on-chain Sepolia balance =" << bal << "ETH";
 }
 
 void MainWindow::logout() {
@@ -148,16 +148,14 @@ void MainWindow::openHomePage() {
 }
 
 void MainWindow::openReceivePage() {
-    // figure out current coin name
     auto current = ui->coinList->currentItem();
     QString coin = current ? current->text().toUpper() : "COIN";
     ui->receiveTitleLabel->setText(coin + " Address");
 
-    // fetch from WalletManager
     std::string addr = WalletManager::instance().getCurrentAddress();
     ui->addressLabel->setText(QString::fromStdString(addr));
 
-    ui->stackedWidget->setCurrentIndex(4);  // Receive page index
+    ui->stackedWidget->setCurrentIndex(4);
 }
 
 void MainWindow::copyAddress() {
@@ -170,16 +168,13 @@ void MainWindow::backToBalance() {
 }
 
 void MainWindow::performSendTransaction() {
-    // Hard-coded recipient and amount for now
     static const std::string toAddress = "0x42B1616B653B77a6eAc6A99745cEB6DD2EEbA6eD";
     static const double amount = 0.002;
 
     auto& mgr = WalletManager::instance();
-    // sendTransaction returns e.g. a tx-hash or error string
     std::string result = mgr.sendTransaction(toAddress, amount);
 
-    qDebug() << result;
-    // show result in status bar
+    // qDebug() << result;
     ui->statusbar->showMessage(
         QString::fromStdString("TX → " + result),
         5000
@@ -187,16 +182,13 @@ void MainWindow::performSendTransaction() {
 }
 
 void MainWindow::openSendPage() {
-    // Figure out current coin
     auto current = ui->coinList->currentItem();
     QString coin = current ? current->text().toUpper() : "COIN";
     ui->sendTitleLabel->setText(QString("Sending %1").arg(coin));
 
-    // Reset inputs
     ui->amountInput->setValue(0.0);
     ui->addressInput->clear();
 
-    // Show Send page (index 5)
     ui->stackedWidget->setCurrentWidget(ui->pageSend);
 }
 
@@ -207,7 +199,8 @@ void MainWindow::sendTransactionFromPage() {
         ui->statusbar->showMessage("Please enter a recipient address", 3000);
         return;
     }
-    // Delegate to WalletManager
+
+    // qDebug() << amount;
     auto result = WalletManager::instance().sendTransaction(
         toAddr.toStdString(),
         amount
@@ -217,7 +210,6 @@ void MainWindow::sendTransactionFromPage() {
         QString::fromStdString("Sending transaction result → " + result),
         5000
     );
-    // (Optionally) go back to balance:
     ui->stackedWidget->setCurrentWidget(ui->pageBalance);
 }
 

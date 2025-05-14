@@ -2,6 +2,9 @@
 // Created by denhumen on 4/9/25.
 //
 
+#include <cstdint>
+#include <stdexcept>
+
 #include "encoding/Base58.hpp"
 
 static const std::string BASE58_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
